@@ -25,7 +25,7 @@ public class H2Repo {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    @Transactional
+    //@Transactional
     //@Handler
     public void writeInDB(InputStream inputStream) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
