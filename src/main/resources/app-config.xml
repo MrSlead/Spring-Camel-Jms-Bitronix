@@ -17,7 +17,5 @@
         <property name="dataSource" ref="H2DB"/>
     </bean>
 
-    <bean name="component" class="com.almod.Comp"></bean>
-
     <context:component-scan base-package="com.almod" />
 </beans>
