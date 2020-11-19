@@ -1,12 +1,17 @@
 package com.almod.camel;
 
+import com.almod.Application;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class TaskProcessor implements Processor {
+    private static Logger logger = LoggerFactory.getLogger(String.valueOf(Application.class));
+
     private final static int BATCH_FILES = 2;
     private final static String TXT = "txt";
     private final static String XML = "xml";
@@ -28,23 +33,21 @@ public class TaskProcessor implements Processor {
         countFiles++;
 
         if(countFiles % BATCH_FILES == 0) {
-            System.out.println(countByTypeFiles.get(XML));
-            System.out.println(countByTypeFiles.get(TXT));
-            System.out.println(countByTypeFiles.get(UNDEFINED));
+            logger.info("---------------------------------------------------------------------------");
+            logger.info(String.format("Number of %s files: %d", XML, countByTypeFiles.get(XML)));
+            logger.info(String.format("Number of %s files: %d", TXT, countByTypeFiles.get(TXT)));
+            logger.info(String.format("Number of %s files: %d", UNDEFINED, countByTypeFiles.get(UNDEFINED)));
         }
 
     }
 
     private void handlingMessage(Exchange exchange) {
         String fileName = getFileName(exchange);
-        System.out.println();
-        System.out.println(fileName);
-        System.out.println();
 
         String typeFile = getTypeFile(fileName);
-        System.out.println();
-        System.out.println(typeFile);
-        System.out.println();
+
+        logger.info("---------------------------------------------------------------------------");
+        logger.info("Found file: " + fileName);
 
         if(typeFile.equals("xml") || typeFile.equals("txt")) {
             incrementCountTypeFiles(typeFile);

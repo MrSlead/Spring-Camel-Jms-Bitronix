@@ -1,7 +1,10 @@
 package com.almod.db;
 
+import com.almod.Application;
 import org.apache.camel.Handler;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -16,6 +19,7 @@ import java.sql.Statement;
 
 @Repository
 public class H2Repo {
+    private static Logger logger = LoggerFactory.getLogger(H2Repo.class);
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -36,7 +40,7 @@ public class H2Repo {
                 String text = IOUtils.toString(inputStream, "UTF-8");
                 ps.setString(1, text);
             } catch (Exception e) {
-                //LOG.error(e.getMessage());
+                logger.error(e.getMessage());
             }
             return ps;
         }, keyHolder);
@@ -45,22 +49,19 @@ public class H2Repo {
         try {
             jdbcTemplate.update(sqlHeadersDB, keyHolder.getKey().longValue(), "Type");
         } catch (Exception e) {
-            //LOG.error(e.getMessage());
+            logger.error(e.getMessage());
         }
     }
 
     public void showDataDB() {
-        //LOG.info("Show result in database");
+        logger.info("Show result in database");
         String sql = "SELECT mg.text, hs.head" +
                 " FROM message mg" +
                 " INNER JOIN headers hs" +
                 " ON mg.id = hs.id;";
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
         while(rowSet.next()) {
-            System.out.println();
-            System.out.println(rowSet.getString(1) + "  " + rowSet.getString(2));
-            System.out.println();
-            //.info(rowSet.getString(1) + "  " + rowSet.getString(2));
+            logger.info(rowSet.getString(1) + "  " + rowSet.getString(2));
         }
     }
 }
