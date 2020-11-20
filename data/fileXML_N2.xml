@@ -1,1 +1,4 @@
-<city>Krasnodar</city>
+<cities>
+    <item value ='Krasnodar' />
+    <item value ='Barnaul' />
+</cities>

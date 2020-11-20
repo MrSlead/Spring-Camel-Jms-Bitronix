@@ -18,6 +18,7 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 
 @Repository
+@Transactional
 public class H2Repo {
     private static Logger logger = LoggerFactory.getLogger(H2Repo.class);
 
@@ -28,7 +29,6 @@ public class H2Repo {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    @Transactional
     @Handler
     public void writeInDB(InputStream inputStream) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -53,7 +53,9 @@ public class H2Repo {
         }
     }
 
+
     public void showDataDB() {
+        logger.info("---------------------------------------------------------------------------");
         logger.info("Show result in database");
         String sql = "SELECT mg.text, hs.head" +
                 " FROM message mg" +
@@ -63,5 +65,6 @@ public class H2Repo {
         while(rowSet.next()) {
             logger.info(rowSet.getString(1) + "  " + rowSet.getString(2));
         }
+        logger.info("---------------------------------------------------------------------------");
     }
 }

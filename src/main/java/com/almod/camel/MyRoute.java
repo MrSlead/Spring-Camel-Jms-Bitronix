@@ -7,6 +7,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 public class MyRoute extends RouteBuilder {
     private static Logger logger = LoggerFactory.getLogger(MyRoute.class);
@@ -18,16 +19,11 @@ public class MyRoute extends RouteBuilder {
     private TaskProcessor taskProcessor;
 
     public void configure() throws Exception {
-        /*from("file:data?noop=true")
-                .to("activemq:queue:start");
-
-        from("activemq:queue:start")
-                .to("stream:out");*/
         logger.info("---------------------------------------------------------------------------");
         logger.info("Start of Apache Camel actions");
         logger.info("---------------------------------------------------------------------------");
 
-        from("file:data?noop=true")
+        from("file:data?noop=true").transacted()
                 .choice()
                 .when(header(Exchange.FILE_NAME).endsWith(".xml"))
                     .process(taskProcessor)
@@ -38,6 +34,8 @@ public class MyRoute extends RouteBuilder {
                     .to("activemq:queue:queue")
                 .otherwise()
                     .process(taskProcessor)
-                    .to("activemq:queue:invalid-queue");
+                    .to("activemq:queue:invalid-queue")
+                    //.throwException(new Exception("Found undefined file"))
+                .end();
     }
 }
