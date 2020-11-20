@@ -6,6 +6,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
 	 http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
 
+    <!-- DATABASE SUPPORT -->
     <jdbc:embedded-database id="H2DB" type="H2">
         <jdbc:script location="classpath:db/schema.sql"/>
     </jdbc:embedded-database>
@@ -30,7 +31,9 @@
     <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
         <property name="dataSource" ref="dataSource"/>
     </bean>
+    <!-- -->
 
+    <!-- BITRONIX -->
     <!-- create BTM config -->
     <bean id="btmConfig" factory-method="getConfiguration" class="bitronix.tm.TransactionManagerServices">
         <property name="serverId" value="btx-server"/>
@@ -47,7 +50,9 @@
         <property name="userTransaction" ref="bitronixTransactionManager"/>
         <property name="transactionManager" ref="bitronixTransactionManager"/>
     </bean>
+    <!-- -->
 
+    <!-- JMS -->
     <bean id="pooledJmsXaConnectionFactory" class="bitronix.tm.resource.jms.PoolingConnectionFactory" init-method="init" destroy-method="close" >
         <property name="className" value="org.apache.activemq.ActiveMQXAConnectionFactory" />
         <property name="uniqueName" value="activemq" />
@@ -67,10 +72,11 @@
     <bean id="jmsContainer"
           class="org.springframework.jms.listener.DefaultMessageListenerContainer">
         <property name="connectionFactory" ref="pooledJmsXaConnectionFactory"/>
-        <property name="destinationName" value="queue"/>
+        <property name="destinationName" value="${destinationJms}"/>
         <property name="messageListener" ref="jmsFileListener" />
         <property name="transactionManager" ref="transactionManager" />
     </bean>
+    <!-- -->
 
     <camelContext id="camelContext" xmlns="http://camel.apache.org/schema/spring">
         <routeBuilder ref="myRoute" />
@@ -81,6 +87,7 @@
     <bean id="myRoute" class="com.almod.camel.MyRoute" />
     <bean id="jmsFileListener" class="com.almod.jms.JmsFileListener" />
 
-    <context:component-scan base-package="com.almod"/>
+    <context:component-scan base-package="com.almod" />
+    <context:property-placeholder location="application.properties" />
     <tx:annotation-driven/>
 </beans>

@@ -10,5 +10,3 @@ CREATE TABLE IF NOT EXISTS headers (
     FOREIGN KEY (id) references message(id),
     primary key (id)
 );
-
-insert into message values(1, 'text');

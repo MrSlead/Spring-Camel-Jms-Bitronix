@@ -2,10 +2,11 @@ package com.almod.camel;
 
 import com.almod.Application;
 import org.apache.camel.Exchange;
+import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +23,9 @@ public class TaskProcessor implements Processor {
     private static int countFiles = 0;
     private static long startTimeHandlingBatchFiles;
     private static boolean isStartHandilngBatchFiles = true;
+
+    @Value("${emailAddress}")
+    private String toEmail;
 
     static {
         countByTypeFiles = new HashMap<>();
@@ -41,6 +45,7 @@ public class TaskProcessor implements Processor {
         countFiles++;
 
         if(countFiles % BATCH_FILES == 0) {
+            sendMailMessage(exchange);
             logger.info("---------------------------------------------------------------------------");
             logger.info("A BATCH OF FILES HAS BEEN GENERATED");
             logger.info(String.format("Number of %s files: %d", XML, countByTypeFiles.get(XML)));
@@ -80,6 +85,24 @@ public class TaskProcessor implements Processor {
     private void incrementCountTypeFiles(String typeFile) {
         int count = countByTypeFiles.get(typeFile);
         countByTypeFiles.put(typeFile, ++count);
+    }
+
+    private void sendMailMessage(Exchange exchange) {
+        Message message = exchange.getOut();
+        message.setHeader("to", toEmail);
+        message.setHeader("subject", "Info about Batch files");
+        message.setBody(getMessageBody());
+    }
+
+    private String getMessageBody() {
+        StringBuilder mailBody = new StringBuilder();
+        mailBody.append("A BATCH OF FILES HAS BEEN GENERATED\n");
+        mailBody.append(String.format("Number of %s files: %d\n", XML, countByTypeFiles.get(XML)));
+        mailBody.append(String.format("Number of %s files: %d\n", TXT, countByTypeFiles.get(TXT)));
+        mailBody.append(String.format("Number of %s files: %d\n", UNDEFINED, countByTypeFiles.get(UNDEFINED)));
+        mailBody.append("Time handling batch files: " + (System.currentTimeMillis() - startTimeHandlingBatchFiles) + " ms");
+
+        return mailBody.toString();
     }
 
 }
