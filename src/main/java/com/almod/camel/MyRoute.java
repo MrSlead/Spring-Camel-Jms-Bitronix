@@ -41,7 +41,7 @@ public class MyRoute extends RouteBuilder {
                 .end()
                 .choice()
                 .when(header("to").isNotNull())
-                    .to("smtps://smtp.gmail.com:465?username=springcamelapp@gmail.com&password=6V01k$_p4ElA")
+                    //.to("smtps://smtp.gmail.com:465?username=springcamelapp@gmail.com&password=6V01k$_p4ElA1")
                 .end();
     }
 }
