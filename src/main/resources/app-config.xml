@@ -60,7 +60,7 @@
         <property name="allowLocalTransactions" value="false" />
         <property name="driverProperties">
             <props>
-                <prop key="brokerURL">vm://localhost?broker.persistent=false</prop>
+                <prop key="brokerURL">${brokerUrl}</prop>
             </props>
         </property>
     </bean>

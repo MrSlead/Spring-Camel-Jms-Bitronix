@@ -25,6 +25,10 @@ public class MyRoute extends RouteBuilder {
         logger.info("Start of Apache Camel actions");
         logger.info("---------------------------------------------------------------------------");
 
+
+        onException(Exception.class)
+                .to("activemq:queue:invalid-queue");
+
         from("file:data?noop=true").transacted()
                 .choice()
                 .when(header(Exchange.FILE_NAME).endsWith(".xml"))
@@ -37,11 +41,10 @@ public class MyRoute extends RouteBuilder {
                 .otherwise()
                     .process(taskProcessor)
                     .to("activemq:queue:invalid-queue")
-                    //.throwException(new Exception("Found undefined file"))
                 .end()
                 .choice()
                 .when(header("to").isNotNull())
-                    //.to("smtps://smtp.gmail.com:465?username=springcamelapp@gmail.com&password=6V01k$_p4ElA1")
+                    .to("smtps://smtp.gmail.com:465?username=springcamelapp@gmail.com&password=6V01k$_p4ElA1")
                 .end();
     }
 }
