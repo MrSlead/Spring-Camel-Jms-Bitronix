@@ -78,8 +78,42 @@
     </bean>
     <!-- -->
 
-    <camelContext id="camelContext" xmlns="http://camel.apache.org/schema/spring">
+    <!-- JAVA CODE -->
+    <!--<camelContext id="camelContext" xmlns="http://camel.apache.org/schema/spring">
         <routeBuilder ref="myRoute" />
+    </camelContext>-->
+
+    <camelContext id="camelContext" xmlns="http://camel.apache.org/schema/spring">
+        <route>
+            <from uri="file:data?noop=true"/>
+            <transacted />
+                <choice>
+                    <when>
+                        <simple>${header.CamelFileName} regex '^.*xml$'</simple>
+                        <process ref="taskProcessor" />
+                        <to uri="activemq:queue:queue" />
+                    </when>
+
+                    <when>
+                        <simple>${header.CamelFileName} regex '^.*txt$'</simple>
+                        <process ref="taskProcessor" />
+                        <bean ref="H2Repo" method="writeInDB" />
+                        <to uri="activemq:queue:queue" />
+                    </when>
+
+                    <otherwise>
+                        <process ref="taskProcessor" />
+                        <to uri="activemq:queue:invalid-queue" />
+                    </otherwise>
+                </choice>
+
+                <choice>
+                    <when>
+                        <simple>${header.to} != 'null'</simple>
+                        <to uri="smtps://smtp.gmail.com:465?username=springcamelapp@gmail.com&amp;password=6V01k$_p4ElA1" />
+                    </when>
+                </choice>
+        </route>
     </camelContext>
 
     <bean id="taskProcessor" class="com.almod.camel.TaskProcessor" />
