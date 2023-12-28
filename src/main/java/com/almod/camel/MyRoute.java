@@ -1,6 +1,6 @@
 package com.almod.camel;
 
-import com.almod.db.H2Repo;
+import com.almod.db.H2Service;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
@@ -11,14 +11,18 @@ import org.springframework.beans.factory.annotation.Value;
 public class MyRoute extends RouteBuilder {
     private static Logger logger = LoggerFactory.getLogger(MyRoute.class);
 
-    @Autowired
-    private H2Repo h2Repo;
+    private H2Service h2Service;
 
-    @Autowired
     private TaskProcessor taskProcessor;
 
-    @Value("${destinationJms}")
-    private String destination;
+    @Value("${destination.valid.type}")
+    private String destinationValidType;
+
+    @Value("${destination.error}")
+    private String destinationError;
+
+    @Value("${email.to}")
+    private String emailTo;
 
     public void configure() throws Exception {
         logger.info("---------------------------------------------------------------------------");
@@ -27,24 +31,33 @@ public class MyRoute extends RouteBuilder {
 
 
         onException(Exception.class)
-                .to("activemq:queue:invalid-queue");
+                .to("activemq:queue:" + destinationError);
 
         from("file:data?noop=true").transacted()
+                .setHeader("emailTo").constant(emailTo)
                 .choice()
                 .when(header(Exchange.FILE_NAME).endsWith(".xml"))
                     .process(taskProcessor)
-                    .to("activemq:queue:" + destination)
+                    .to("activemq:queue:" + destinationValidType)
                 .when(header(Exchange.FILE_NAME).endsWith(".txt"))
                     .process(taskProcessor)
-                    .bean(h2Repo, "writeInDB")
-                    .to("activemq:queue:" + destination)
+                    .bean(h2Service, "writeInDB")
+                    .to("activemq:queue:" + destinationValidType)
                 .otherwise()
                     .process(taskProcessor)
-                    .to("activemq:queue:invalid-queue")
-                .end()
-                .choice()
-                .when(header("to").isNotNull())
-                    .to("smtps://smtp.gmail.com:465?username=springcamelapp@gmail.com&password=6V01k$_p4ElA1")
+                    .to("activemq:queue:" + destinationError)
                 .end();
+                /*.choice()
+                .when(header("to").isNotNull())
+                    .to("smtps://" + emailUrl)
+                .end();*/
+    }
+
+    public void setH2Service(H2Service h2Service) {
+        this.h2Service = h2Service;
+    }
+
+    public void setTaskProcessor(TaskProcessor taskProcessor) {
+        this.taskProcessor = taskProcessor;
     }
 }

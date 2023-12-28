@@ -13,11 +13,11 @@
 
     <bean id="dataSource" class="bitronix.tm.resource.jdbc.PoolingDataSource"
           init-method="init" destroy-method="close">
-        <property name="className" value="bitronix.tm.resource.jdbc.lrc.LrcXADataSource" />
-        <property name="uniqueName" value="h2database" />
-        <property name="maxPoolSize" value="5" />
-        <property name="minPoolSize" value="0" />
-        <property name="allowLocalTransactions" value="false" />
+        <property name="className" value="bitronix.tm.resource.jdbc.lrc.LrcXADataSource"/>
+        <property name="uniqueName" value="h2database"/>
+        <property name="maxPoolSize" value="5"/>
+        <property name="minPoolSize" value="0"/>
+        <property name="allowLocalTransactions" value="false"/>
         <property name="driverProperties">
             <props>
                 <prop key="user">sa</prop>
@@ -54,10 +54,10 @@
 
     <!-- JMS -->
     <bean id="pooledJmsXaConnectionFactory" class="bitronix.tm.resource.jms.PoolingConnectionFactory" init-method="init" destroy-method="close" >
-        <property name="className" value="org.apache.activemq.ActiveMQXAConnectionFactory" />
-        <property name="uniqueName" value="activemq" />
-        <property name="maxPoolSize" value="8" />
-        <property name="allowLocalTransactions" value="false" />
+        <property name="className" value="org.apache.activemq.ActiveMQXAConnectionFactory"/>
+        <property name="uniqueName" value="activemq"/>
+        <property name="maxPoolSize" value="8"/>
+        <property name="allowLocalTransactions" value="false"/>
         <property name="driverProperties">
             <props>
                 <prop key="brokerURL">${brokerUrl}</prop>
@@ -66,24 +66,23 @@
     </bean>
 
     <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
-        <property name="connectionFactory" ref="pooledJmsXaConnectionFactory" />
+        <property name="connectionFactory" ref="pooledJmsXaConnectionFactory"/>
     </bean>
 
     <bean id="jmsContainer"
           class="org.springframework.jms.listener.DefaultMessageListenerContainer">
         <property name="connectionFactory" ref="pooledJmsXaConnectionFactory"/>
-        <property name="destinationName" value="${destinationJms}"/>
-        <property name="messageListener" ref="jmsFileListener" />
-        <property name="transactionManager" ref="transactionManager" />
+        <property name="destinationName" value="${destination.valid.type}"/>
+        <property name="messageListener" ref="jmsFileListener"/>
+        <property name="transactionManager" ref="transactionManager"/>
     </bean>
-    <!-- -->
 
     <!-- JAVA CODE -->
-    <!--<camelContext id="camelContext" xmlns="http://camel.apache.org/schema/spring">
-        <routeBuilder ref="myRoute" />
-    </camelContext>-->
-
     <camelContext id="camelContext" xmlns="http://camel.apache.org/schema/spring">
+        <routeBuilder ref="myRoute"/>
+    </camelContext>
+
+    <!--camelContext id="camelContext" xmlns="http://camel.apache.org/schema/spring">
         <route>
             <from uri="file:data?noop=true"/>
             <transacted />
@@ -91,14 +90,14 @@
                     <when>
                         <simple>${header.CamelFileName} regex '^.*xml$'</simple>
                         <process ref="taskProcessor" />
-                        <to uri="activemq:queue:queue" />
+                        <to uri="activemq:queue:${destinationJms}" />
                     </when>
 
                     <when>
                         <simple>${header.CamelFileName} regex '^.*txt$'</simple>
                         <process ref="taskProcessor" />
                         <bean ref="H2Repo" method="writeInDB" />
-                        <to uri="activemq:queue:queue" />
+                        <to uri="activemq:queue:${destinationJms}" />
                     </when>
 
                     <otherwise>
@@ -110,18 +109,37 @@
                 <choice>
                     <when>
                         <simple>${header.to} != 'null'</simple>
-                        <to uri="smtps://smtp.gmail.com:465?username=springcamelapp@gmail.com&amp;password=6V01k$_p4ElA1" />
+                        <to uri="smtps://smtp.gmail.com:465?username=${email.username}&amp;password=${email.password}" />
                     </when>
                 </choice>
         </route>
-    </camelContext>
+    </camelContext-->
 
-    <bean id="taskProcessor" class="com.almod.camel.TaskProcessor" />
-    <bean id="H2Repo" class="com.almod.db.H2Repo" />
-    <bean id="myRoute" class="com.almod.camel.MyRoute" />
-    <bean id="jmsFileListener" class="com.almod.jms.JmsFileListener" />
+    <bean id="taskProcessor" class="com.almod.camel.TaskProcessor"/>
 
-    <context:component-scan base-package="com.almod" />
-    <context:property-placeholder location="application.properties" />
+    <bean id="h2Service" class="com.almod.db.H2ServiceImpl">
+        <constructor-arg name="jdbcTemplate" ref="jdbcTemplate"/>
+    </bean>
+
+    <bean id="myRoute" class="com.almod.camel.MyRoute">
+        <property name="h2Service" ref="h2Service"/>
+        <property name="taskProcessor" ref="taskProcessor"/>
+    </bean>
+
+    <bean id="mailSender" class="com.almod.util.EmailSender"/>
+
+    <bean id="jmsFileListener" class="com.almod.jms.JmsFileListener"/>
+
+    <bean id="emailConfig" class="com.almod.util.EmailConfig">
+        <constructor-arg name="emailFromUsername" value="${email.from.username}"/>
+        <constructor-arg name="emailFromPassword" value="${email.from.password}"/>
+        <constructor-arg name="emailHostName" value="${mail.smtp.host}"/>
+        <constructor-arg name="emailHostPort" value="${mail.smtp.port}"/>
+        <constructor-arg name="emailHostSSLEnable" value="${mail.smtp.ssl.enable}"/>
+        <constructor-arg name="emailHostAuth" value="${mail.smtp.auth}"/>
+    </bean>
+
+    <context:component-scan base-package="com.almod"/>
+    <context:property-placeholder location="application.properties"/>
     <tx:annotation-driven/>
 </beans>

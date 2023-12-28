@@ -1,6 +1,7 @@
 package com.almod;
 
-import com.almod.db.H2Repo;
+import com.almod.db.H2Service;
+import com.almod.db.H2ServiceImpl;
 import org.apache.camel.CamelContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,11 +17,11 @@ public class Application {
         CamelContext camelContext = (CamelContext) context.getBean("camelContext");
         Thread.sleep(15000);
 
-        H2Repo h2Repo = (H2Repo) context.getBean("H2Repo");
-        h2Repo.showDataDB();
+        H2Service h2Service = (H2Service) context.getBean("h2Service");
+        h2Service.showDataDB();
 
-        camelContext.stop();
-        System.exit(0);
+        //camelContext.stop();
+        //System.exit(0);
     }
 
 
