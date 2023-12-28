@@ -1,6 +1,5 @@
 package com.almod.db;
 
-import com.almod.Application;
 import org.apache.camel.Handler;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -17,15 +16,13 @@ import java.io.InputStream;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 
-@Repository
 @Transactional
-public class H2Repo {
-    private static Logger logger = LoggerFactory.getLogger(H2Repo.class);
+public class H2ServiceImpl implements H2Service {
+    private static Logger logger = LoggerFactory.getLogger(H2ServiceImpl.class);
 
-    private final JdbcTemplate jdbcTemplate;
+    private JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    public H2Repo(JdbcTemplate jdbcTemplate) {
+    public H2ServiceImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
