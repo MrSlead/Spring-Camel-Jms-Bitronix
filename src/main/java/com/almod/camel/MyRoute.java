@@ -24,7 +24,7 @@ public class MyRoute extends RouteBuilder {
     @Value("${email.to}")
     private String emailTo;
 
-    public void configure() throws Exception {
+    public void configure() {
         logger.info("---------------------------------------------------------------------------");
         logger.info("Start of Apache Camel actions");
         logger.info("---------------------------------------------------------------------------");

@@ -1,6 +1,5 @@
-package com.almod.util;
+package com.almod.mail;
 
-import com.almod.camel.TaskProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +14,6 @@ public class EmailSender {
 
     private EmailConfig emailConfig;
 
-    @Autowired
     public void setEmailConfig(EmailConfig emailConfig) {
         this.emailConfig = emailConfig;
     }

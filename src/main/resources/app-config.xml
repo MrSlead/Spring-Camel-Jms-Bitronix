@@ -82,61 +82,70 @@
         <routeBuilder ref="myRoute"/>
     </camelContext>
 
+    <!-- XML ROUTE -->
     <!--camelContext id="camelContext" xmlns="http://camel.apache.org/schema/spring">
         <route>
             <from uri="file:data?noop=true"/>
             <transacted />
+            <setHeader headerName="emailTo" >
+                <constant>mordyasov.71@gmail.com</constant>
+            </setHeader>
                 <choice>
                     <when>
                         <simple>${header.CamelFileName} regex '^.*xml$'</simple>
-                        <process ref="taskProcessor" />
-                        <to uri="activemq:queue:${destinationJms}" />
+                        <process ref="taskProcessor"/>
+                        <to uri="activemq:queue:${destinationJms}"/>
                     </when>
 
                     <when>
                         <simple>${header.CamelFileName} regex '^.*txt$'</simple>
-                        <process ref="taskProcessor" />
-                        <bean ref="H2Repo" method="writeInDB" />
-                        <to uri="activemq:queue:${destinationJms}" />
+                        <process ref="taskProcessor"/>
+                        <bean ref="h2Service" method="writeInDB"/>
+                        <to uri="activemq:queue:${destinationJms}"/>
                     </when>
 
                     <otherwise>
-                        <process ref="taskProcessor" />
-                        <to uri="activemq:queue:invalid-queue" />
+                        <process ref="taskProcessor"/>
+                        <to uri="activemq:queue:invalid-queue"/>
                     </otherwise>
                 </choice>
 
-                <choice>
+                <!-choice>
                     <when>
                         <simple>${header.to} != 'null'</simple>
                         <to uri="smtps://smtp.gmail.com:465?username=${email.username}&amp;password=${email.password}" />
                     </when>
-                </choice>
-        </route>
+                </choice-->
+        <!--/route>
     </camelContext-->
 
-    <bean id="taskProcessor" class="com.almod.camel.TaskProcessor"/>
-
-    <bean id="h2Service" class="com.almod.db.H2ServiceImpl">
-        <constructor-arg name="jdbcTemplate" ref="jdbcTemplate"/>
-    </bean>
-
-    <bean id="myRoute" class="com.almod.camel.MyRoute">
-        <property name="h2Service" ref="h2Service"/>
-        <property name="taskProcessor" ref="taskProcessor"/>
-    </bean>
-
-    <bean id="mailSender" class="com.almod.util.EmailSender"/>
 
     <bean id="jmsFileListener" class="com.almod.jms.JmsFileListener"/>
 
-    <bean id="emailConfig" class="com.almod.util.EmailConfig">
+    <bean id="emailConfig" class="com.almod.mail.EmailConfig">
         <constructor-arg name="emailFromUsername" value="${email.from.username}"/>
         <constructor-arg name="emailFromPassword" value="${email.from.password}"/>
         <constructor-arg name="emailHostName" value="${mail.smtp.host}"/>
         <constructor-arg name="emailHostPort" value="${mail.smtp.port}"/>
         <constructor-arg name="emailHostSSLEnable" value="${mail.smtp.ssl.enable}"/>
         <constructor-arg name="emailHostAuth" value="${mail.smtp.auth}"/>
+    </bean>
+
+    <bean id="mailSender" class="com.almod.mail.EmailSender">
+        <property name="emailConfig" ref="emailConfig"/>
+    </bean>
+
+    <bean id="h2Service" class="com.almod.db.H2ServiceImpl">
+        <constructor-arg name="jdbcTemplate" ref="jdbcTemplate"/>
+    </bean>
+
+    <bean id="taskProcessor" class="com.almod.camel.TaskProcessor">
+        <property name="mailSender" ref="mailSender"/>
+    </bean>
+
+    <bean id="myRoute" class="com.almod.camel.MyRoute">
+        <property name="h2Service" ref="h2Service"/>
+        <property name="taskProcessor" ref="taskProcessor"/>
     </bean>
 
     <context:component-scan base-package="com.almod"/>

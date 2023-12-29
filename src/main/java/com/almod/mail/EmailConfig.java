@@ -1,4 +1,4 @@
-package com.almod.util;
+package com.almod.mail;
 
 import javax.mail.*;
 import java.util.Properties;
