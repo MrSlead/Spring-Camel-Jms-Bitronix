@@ -1,6 +1,8 @@
 package com.almod.camel;
 
-import com.almod.util.EmailSender;
+import com.almod.mail.EmailSender;
+import com.almod.util.PayloadLog;
+import com.almod.util.TypeDoc;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.slf4j.Logger;
@@ -15,7 +17,7 @@ public class TaskProcessor implements Processor {
 
     public static final int BATCH_FILES = 3;
     public static final Map<String, Integer> numberOfFilesByType;
-    private static int countFiles = 0;
+    private static int countProcessedFiles = 0;
     private static long startTimeHandlingBatchFiles;
     private static boolean isStartHandlingBatchFiles = true;
 
@@ -25,9 +27,9 @@ public class TaskProcessor implements Processor {
     }
 
     private static void initializeMap() {
-        numberOfFilesByType.put(TypeDoc.XML.getValue(), 0);
-        numberOfFilesByType.put(TypeDoc.TXT.getValue(), 0);
-        numberOfFilesByType.put(TypeDoc.UNDEFINED.getValue(), 0);
+        for(TypeDoc typeDoc : TypeDoc.values()) {
+            numberOfFilesByType.put(typeDoc.getValue(), 0);
+        }
     }
 
     private static void toZeroMap() {
@@ -36,7 +38,6 @@ public class TaskProcessor implements Processor {
 
     private EmailSender emailSender;
 
-    @Autowired
     public void setMailSender(EmailSender emailSender) {
         this.emailSender = emailSender;
     }
@@ -49,9 +50,9 @@ public class TaskProcessor implements Processor {
         }
 
         handlingMessage(exchange);
-        countFiles++;
+        countProcessedFiles++;
 
-        if(countFiles % BATCH_FILES == 0) {
+        if(countProcessedFiles % BATCH_FILES == 0) {
             PayloadLog.printInfoByProcessedTypeDoc();
             emailSender.sendMailMessage(exchange.getIn().getHeader("emailTo").toString(),
                     "Information on document types - Spring APP", PayloadLog.getInfoByProcessedTypeDocString());
@@ -63,7 +64,7 @@ public class TaskProcessor implements Processor {
 
     private void handlingMessage(Exchange exchange) {
         String fileName = getFileName(exchange);
-        String typeFile = getTypeFile(fileName);
+        String typeFile = getTypeFile(fileName).toLowerCase();
 
         LOG.info("Found file: " + fileName);
 

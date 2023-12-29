@@ -20,8 +20,9 @@ public class Application {
         H2Service h2Service = (H2Service) context.getBean("h2Service");
         h2Service.showDataDB();
 
-        //camelContext.stop();
-        //System.exit(0);
+        // To stop the application
+        /*camelContext.stop();
+        System.exit(0);*/
     }
 
 

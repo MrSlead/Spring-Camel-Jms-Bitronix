@@ -1,4 +1,4 @@
-package com.almod.camel;
+package com.almod.util;
 
 public enum TypeDoc {
     TXT("txt"),
